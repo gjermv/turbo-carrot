@@ -192,7 +192,17 @@ class TogglCopy(QtGui.QWidget):
         
         self.statuslabel.setText(' -Successfully stored in database.')
         
+        self.messagebox =  QtGui.QMessageBox.question(self, 'Message',
+            "Do you want to clear the textboxes?", QtGui.QMessageBox.Yes | 
+            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
         
+        if self.messagebox == QtGui.QMessageBox.Yes:
+            self.btn3Clicked()
+        else:
+            pass
+        
+        self.statuslabel.setText(' - Registration completed, all textboxes cleared.')
+
         
     def btn3Clicked(self):
         self.le_StartTime.clear()   
