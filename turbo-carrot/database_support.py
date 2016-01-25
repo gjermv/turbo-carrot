@@ -115,9 +115,17 @@ class TogglCopy(QtGui.QWidget):
         self.btn3 = QtGui.QPushButton('Clear', self)
         self.btn3.move(100, 430)
         self.btn3.clicked.connect(self.btn3Clicked)
-
+        
+        #Status bar
+        self.statuslabel = QtGui.QLabel('     Ready',self)
+        self.statuslabel.move(30,470)
+        self.statuslabel.setFixedSize(290,22)
+        self.statuslabel.setStyleSheet("background-color:silver; ")
+        
+        
+        
         #Main window
-        self.setGeometry(500,300,345,470)
+        self.setGeometry(500,300,345,500)
         self.setWindowTitle('Time registration')
         self.show()
         
@@ -135,12 +143,14 @@ class TogglCopy(QtGui.QWidget):
             self.btn1.setText("Stop Time")
             self.btn1.setStyleSheet("background-color: red")
             self.btn1Flag = True
+            
         else:
             durtime = str((dt.now()-self.startTime)).split('.')[0]
             self.le_Duration.setText(durtime)
             self.btn1.setText("Start Time")
             self.btn1.setStyleSheet("background-color: lightgreen")  
             self.btn1Flag = False
+            
             
 
     def btn2Clicked(self):
@@ -176,10 +186,13 @@ class TogglCopy(QtGui.QWidget):
         with self.con:
             cur = self.con.cursor()        
             cur.execute(exestring)
-
-            
+                
         self.con.commit()
         self.con.close()
+        
+        self.statuslabel.setText(' -Successfully stored in database.')
+        
+        
         
     def btn3Clicked(self):
         self.le_StartTime.clear()   
@@ -194,6 +207,7 @@ class TogglCopy(QtGui.QWidget):
         self.cb_Solved.setCheckState(0)
         self.cb_FollowUp.setCheckState(0)
         self.cb_Forwarded.setCheckState(0)
+        self.statuslabel.setText(' -All textboxes cleared.')
 
     def get_data(self,model):
         model.setStringList(["VolkerFitzPatrick", "Morgan Sindell", "BamNuttall", "Geometris"])
