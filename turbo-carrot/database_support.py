@@ -9,6 +9,7 @@ import sys
 from PyQt4 import QtGui,Qt
 import sqlite3 as lite
 from datetime import datetime as dt
+import re
 
 class TogglCopy(QtGui.QWidget):
     
@@ -68,7 +69,7 @@ class TogglCopy(QtGui.QWidget):
         self.le_Company.move(130,115)
         
         self.le_Phone = QtGui.QLineEdit(self)
-        self.le_Phone.setFixedWidth(90)
+        self.le_Phone.setFixedWidth(80)
         self.le_Phone.move(230,115)
         
         self.le_Products = QtGui.QLineEdit(self)
@@ -117,7 +118,8 @@ class TogglCopy(QtGui.QWidget):
         self.btn3.clicked.connect(self.btn3Clicked)
         
         self.btn4 = QtGui.QPushButton('?', self)
-        self.btn4.move(100, 430)
+        self.btn4.setFixedWidth(20)
+        self.btn4.move(310, 113)
         #self.btn4.clicked.connect(self.btn3Clicked)
         
         #Status bar
@@ -234,5 +236,63 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
-    main()
+#===============================================================================
+# if __name__ == '__main__':
+#     main()
+#===============================================================================
+
+def btn4Clicked():
+    con = lite.connect('C:\\python\\database\\test_X.db')
+    cur = con.cursor()    
+    cur.execute("SELECT * FROM Support")
+    rows = cur.fetchall()
+    s = '<html><body> <table width = "80%" align="center" border="1px" bordercolor="WhiteSmoke" ><tr><td colspan="5" bgcolor="LightGrey"><b>Overview</b></td>'
+    
+    
+    for item in rows:
+       
+        if checkPhoneNumber('07590328769', item[6]):
+            s += '<tr><td bgcolor="WhiteSmoke" colspan="5">Date: '+item[1][:16]+'</td></tr><tr>'
+            s += '<td>'+item[4]+'</td><td>'+item[6]+'</td><td>'+item[7]+'</td><td>'+item[9]+'</td><td>'+item[10]+'</td>'
+            s += '</tr><tr><td colspan="5"><hr></td></tr>'
+            
+    s += '</table></body></html>'
+    con.close()
+    htmlfile = open('C:\\python\\database\\output.html','w',encoding='utf-8')
+    htmlfile.write(s)
+
+def checkPhoneNumber(newn, oldn):
+    no1 = str(newn)
+    no2 = str(oldn)
+    if len(no2) < 2:
+        return False
+    
+    elif no1 == no2:
+        return True
+    elif no1 in no2:
+        return True
+    elif checkDigitForDigit(no1,no2):
+        return True
+    return False
+
+def checkDigitForDigit(no1,no2):
+    pattern = ''
+    
+    if len(no1) == len(no2):
+        for i,s in enumerate(no2):
+            if s == '.':
+                pattern += s
+            else:
+                pattern += no1[i]
+    
+              
+    
+        if re.match(pattern,no2) != None:
+
+            return True
+    
+    return False
+    
+            
+
+print(btn4Clicked())
