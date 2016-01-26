@@ -116,6 +116,10 @@ class TogglCopy(QtGui.QWidget):
         self.btn3.move(100, 430)
         self.btn3.clicked.connect(self.btn3Clicked)
         
+        self.btn4 = QtGui.QPushButton('?', self)
+        self.btn4.move(100, 430)
+        #self.btn4.clicked.connect(self.btn3Clicked)
+        
         #Status bar
         self.statuslabel = QtGui.QLabel('     Ready',self)
         self.statuslabel.move(30,470)
@@ -154,7 +158,7 @@ class TogglCopy(QtGui.QWidget):
             
 
     def btn2Clicked(self):
-        self.con = lite.connect('C:\\python\\database\\test.db')
+        self.con = lite.connect('C:\\python\\database\\test_X.db')
         
         startTime = self.startTime       
         duration = self.le_Duration.text()
@@ -198,10 +202,11 @@ class TogglCopy(QtGui.QWidget):
         
         if self.messagebox == QtGui.QMessageBox.Yes:
             self.btn3Clicked()
+            self.statuslabel.setText(' - Registration completed, all textboxes cleared.')
         else:
             pass
         
-        self.statuslabel.setText(' - Registration completed, all textboxes cleared.')
+        
 
         
     def btn3Clicked(self):
