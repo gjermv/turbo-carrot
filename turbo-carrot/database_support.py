@@ -25,6 +25,7 @@ class TogglCopy(QtGui.QWidget):
     def initUI(self):
         self._DATABASENAME = 'C:\\python\\database\\test.db'
         
+        #Fonts
         font = QtGui.QFont( "Consolas", 12)
         # Labels
         self.label1 = QtGui.QLabel('Register case',self)
@@ -150,14 +151,13 @@ class TogglCopy(QtGui.QWidget):
         
         QtCore.QObject.connect(self.le_Phone, QtCore.SIGNAL('editingFinished()'), self.getPhoneNumberLength)
         
-        
-        
+  
     def getPhoneNumberLength(self):
         l = len(self.le_Phone.text())
         st = 'Phone ({})'.format(l)
         self.label6.setText(st)
         
-    
+        
     def btn1Clicked(self):
         if not self.btn1Flag:
             self.startTime = dt.now()
@@ -174,7 +174,6 @@ class TogglCopy(QtGui.QWidget):
             self.btn1Flag = False
             
             
-
     def btn2Clicked(self):
         self.con = lite.connect(self._DATABASENAME)
         
@@ -214,6 +213,7 @@ class TogglCopy(QtGui.QWidget):
         
         self.statuslabel.setText('- Successfully stored in database.')
         
+        # Open a messagebox to potentially delete all the textboxes
         self.messagebox =  QtGui.QMessageBox.question(self, 'Message',
             "Do you want to clear the textboxes?", QtGui.QMessageBox.Yes | 
             QtGui.QMessageBox.No, QtGui.QMessageBox.No)
