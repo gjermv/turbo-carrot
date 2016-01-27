@@ -21,7 +21,6 @@ class TogglCopy(QtGui.QWidget):
         self.btn1Flag = False
         self.startTime = 0
     
-        
     def initUI(self):
         self._DATABASENAME = 'C:\\python\\database\\test.db'
         
@@ -151,12 +150,10 @@ class TogglCopy(QtGui.QWidget):
         
         QtCore.QObject.connect(self.le_Phone, QtCore.SIGNAL('editingFinished()'), self.getPhoneNumberLength)
         
-  
     def getPhoneNumberLength(self):
         l = len(self.le_Phone.text())
         st = 'Phone ({})'.format(l)
         self.label6.setText(st)
-        
         
     def btn1Clicked(self):
         if not self.btn1Flag:
@@ -172,8 +169,7 @@ class TogglCopy(QtGui.QWidget):
             self.btn1.setText("Start Time")
             self.btn1.setStyleSheet("background-color: lightgreen")  
             self.btn1Flag = False
-            
-            
+                
     def btn2Clicked(self):
         self.con = lite.connect(self._DATABASENAME)
         
@@ -290,9 +286,6 @@ class TogglCopy(QtGui.QWidget):
             if re.match(pattern,no2) != None:
                 return True
         return False
-
-
-
 
 
 def main():
