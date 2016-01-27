@@ -6,11 +6,12 @@ Created on Tue Nov 10 16:42:41 2015
 """
 
 import sys
-from PyQt4 import QtGui,Qt
+from PyQt4 import QtGui,Qt,QtCore
 import sqlite3 as lite
 from datetime import datetime as dt
 import re
 import webbrowser
+
 
 class TogglCopy(QtGui.QWidget):
     
@@ -19,11 +20,16 @@ class TogglCopy(QtGui.QWidget):
         self.initUI()
         self.btn1Flag = False
         self.startTime = 0
+    
         
     def initUI(self):
+        self._DATABASENAME = 'C:\\python\\database\\test.db'
+        
+        font = QtGui.QFont( "Consolas", 12)
         # Labels
         self.label1 = QtGui.QLabel('Register case',self)
-        self.label1.move(20,10)
+        self.label1.setFont(font)
+        self.label1.move(15,10)
         
         self.label2 = QtGui.QLabel('Start Time',self)
         self.label2.move(130,50)
@@ -37,7 +43,7 @@ class TogglCopy(QtGui.QWidget):
         self.label5 = QtGui.QLabel('Company',self)
         self.label5.move(130,100)
             
-        self.label6 = QtGui.QLabel('Phone number',self)
+        self.label6 = QtGui.QLabel('Phone (0)   ',self)
         self.label6.move(230,100)
         
         self.label7 = QtGui.QLabel('Products',self)
@@ -72,6 +78,7 @@ class TogglCopy(QtGui.QWidget):
         self.le_Phone = QtGui.QLineEdit(self)
         self.le_Phone.setFixedWidth(80)
         self.le_Phone.move(230,115)
+        
         
         self.le_Products = QtGui.QLineEdit(self)
         self.le_Products.setFixedWidth(190)
@@ -124,24 +131,32 @@ class TogglCopy(QtGui.QWidget):
         self.btn4.clicked.connect(self.btn4Clicked)
         
         #Status bar
-        self.statuslabel = QtGui.QLabel('     Ready',self)
-        self.statuslabel.move(30,470)
-        self.statuslabel.setFixedSize(290,22)
-        self.statuslabel.setStyleSheet("background-color:silver; ")
-        
-        
+        self.statuslabel = QtGui.QLabel('- Ready (Database = {})'.format(self._DATABASENAME),self)
+        self.statuslabel.move(2,470)
+        self.statuslabel.setFixedSize(341,22)
+        self.statuslabel.setStyleSheet("background-color:#F8F8F8; color:grey;border: 1px solid grey; border-radius: 3px; padding: 0 4px;")
         
         #Main window
-        self.setGeometry(500,300,345,500)
+        self.setGeometry(500,300,345,493)
         self.setWindowTitle('Time registration')
         self.show()
         
+        # Create an auto fill 
         self.completer = QtGui.QCompleter()
         self.le_Company.setCompleter(self.completer)
-        
         model = QtGui.QStringListModel()
         self.completer.setModel(model)
         self.get_data(model)
+        
+        QtCore.QObject.connect(self.le_Phone, QtCore.SIGNAL('editingFinished()'), self.getPhoneNumberLength)
+        
+        
+        
+    def getPhoneNumberLength(self):
+        l = len(self.le_Phone.text())
+        st = 'Phone ({})'.format(l)
+        self.label6.setText(st)
+        
     
     def btn1Clicked(self):
         if not self.btn1Flag:
@@ -161,17 +176,17 @@ class TogglCopy(QtGui.QWidget):
             
 
     def btn2Clicked(self):
-        self.con = lite.connect('C:\\python\\database\\test.db')
+        self.con = lite.connect(self._DATABASENAME)
         
         startTime = self.startTime       
-        duration = self.le_Duration.text()
-        name = self.le_Name.text()
-        company = self.le_Company.text()
+        duration = self.le_Duration.text().replace("'","")
+        name = self.le_Name.text().replace("'","")
+        company = self.le_Company.text().replace("'","")
         phone = self.le_Phone.text()
-        products = self.le_Products.text()
-        equipmentno = self.le_EquipmentNo.text()
-        problem = self.te_Problem.toPlainText()
-        solution = self.te_Solution.toPlainText()
+        products = self.le_Products.text().replace("'","")
+        equipmentno = self.le_EquipmentNo.text().replace("'","")
+        problem = self.te_Problem.toPlainText().replace("'","")
+        solution = self.te_Solution.toPlainText().replace("'","")
         regtime = str(dt.now())
         
         if self.cb_Solved.checkState() == 2:
@@ -197,7 +212,7 @@ class TogglCopy(QtGui.QWidget):
         self.con.commit()
         self.con.close()
         
-        self.statuslabel.setText(' -Successfully stored in database.')
+        self.statuslabel.setText('- Successfully stored in database.')
         
         self.messagebox =  QtGui.QMessageBox.question(self, 'Message',
             "Do you want to clear the textboxes?", QtGui.QMessageBox.Yes | 
@@ -205,7 +220,7 @@ class TogglCopy(QtGui.QWidget):
         
         if self.messagebox == QtGui.QMessageBox.Yes:
             self.btn3Clicked()
-            self.statuslabel.setText(' - Registration completed, all textboxes cleared.')
+            self.statuslabel.setText('- Registration completed, all textboxes cleared.')
         else:
             pass
         
@@ -222,13 +237,13 @@ class TogglCopy(QtGui.QWidget):
         self.cb_Solved.setCheckState(0)
         self.cb_FollowUp.setCheckState(0)
         self.cb_Forwarded.setCheckState(0)
-        self.statuslabel.setText(' -All textboxes cleared.')
+        self.statuslabel.setText('- All textboxes cleared.')
 
     def get_data(self,model):
         model.setStringList(["VolkerFitzPatrick", "Morgan Sindell", "BamNuttall", "Geometris"])
 
     def btn4Clicked(self):
-        con = lite.connect('C:\\python\\database\\test.db')
+        con = lite.connect(self._DATABASENAME)
         cur = con.cursor()    
         cur.execute("SELECT * FROM Support")
         rows = cur.fetchall()
@@ -246,7 +261,7 @@ class TogglCopy(QtGui.QWidget):
         htmlfile = open('C:\\python\\database\\output.html','w',encoding='utf-8')
         htmlfile.write(s)
         htmlfile.close()
-        self.statuslabel.setText(' -Successfully created a webpage.')
+        self.statuslabel.setText('- Successfully created a webpage.')
         webbrowser.open('C:\\python\\database\\output.html')
 
     def checkPhoneNumber(self,newn, oldn):
@@ -276,7 +291,10 @@ class TogglCopy(QtGui.QWidget):
                 return True
         return False
 
-    
+
+
+
+
 def main():
     
     app = QtGui.QApplication(sys.argv)
