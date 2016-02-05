@@ -11,7 +11,7 @@ import sqlite3 as lite
 from datetime import datetime as dt
 import re
 import webbrowser
-import win32com.client as win32   
+import win32com.client as win32
 
 
 class TogglCopy(QtGui.QWidget):
@@ -25,6 +25,8 @@ class TogglCopy(QtGui.QWidget):
     def initUI(self):
         self._DATABASENAME = 'N:\\Gjermund\\database_support\\support.db'
         self._USER = "GV"
+        self.CLEAR_OK = True
+        self.REGISTER_OK = False
         
         #Fonts
         font = QtGui.QFont( "Consolas", 12)
@@ -195,83 +197,102 @@ class TogglCopy(QtGui.QWidget):
         
             self.btn1.setStyleSheet("border: 0")  
             self.btn1Flag = True
+            self.REGISTER_OK = False
+            self.CLEAR_OK = False
             
         else:
             durtime = str((dt.now()-self.startTime)).split('.')[0]
             self.le_Duration.setText(durtime)
             self.btn1.setIcon(QtGui.QIcon('N:\Gjermund\database_support\\img\\clock1.png'))
             self.btn1Flag = False
+            self.REGISTER_OK = True
                 
     def btn2Clicked(self):
-        try:
-            self.con = lite.connect(self._DATABASENAME)
-            
-            startTime = self.startTime       
-            duration = self.le_Duration.text().replace("'","")
-            name = self.le_Name.text().replace("'","")
-            company = self.le_Company.text().replace("'","")
-            phone = self.le_Phone.text()
-            products = self.le_Products.text().replace("'","")
-            equipmentno = self.le_EquipmentNo.text().replace("'","")
-            problem = self.te_Problem.toPlainText().replace("'","")
-            solution = self.te_Solution.toPlainText().replace("'","")
-            regtime = str(dt.now())
-            
-            if self.cb_Solved.checkState() == 2:
-                solved = 1
-            else: 
-                solved = 0
-            if self.cb_FollowUp.checkState() == 2:
-                followup = 1
-            else:
-                followup = 0
-            if self.cb_Forwarded.checkState() == 2:
-                forwarded = 1
-            else:
-                forwarded = 0
-            
-            exestring = "INSERT INTO Support VALUES(NULL,"
-            exestring += "'{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}')".format(startTime, duration, regtime, name, company, phone, products, equipmentno, problem, solution,solved,followup,forwarded,self._USER)
-            print(exestring)
-            with self.con:
-                cur = self.con.cursor()        
-                cur.execute(exestring)
-                    
-            self.con.commit()
-            self.con.close()
-            
-            self.statuslabel.setText('- Successfully stored in database.')
+        if self.REGISTER_OK:
+            try:
+                self.con = lite.connect(self._DATABASENAME)
+                
+                startTime = self.startTime       
+                duration = self.le_Duration.text().replace("'","")
+                name = self.le_Name.text().replace("'","")
+                company = self.le_Company.text().replace("'","")
+                phone = self.le_Phone.text()
+                products = self.le_Products.text().replace("'","")
+                equipmentno = self.le_EquipmentNo.text().replace("'","")
+                problem = self.te_Problem.toPlainText().replace("'","")
+                solution = self.te_Solution.toPlainText().replace("'","")
+                regtime = str(dt.now())
+                
+                if self.cb_Solved.checkState() == 2:
+                    solved = 1
+                else: 
+                    solved = 0
+                if self.cb_FollowUp.checkState() == 2:
+                    followup = 1
+                else:
+                    followup = 0
+                if self.cb_Forwarded.checkState() == 2:
+                    forwarded = 1
+                else:
+                    forwarded = 0
+                
+                exestring = "INSERT INTO Support VALUES(NULL,"
+                exestring += "'{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}')".format(startTime, duration, regtime, name, company, phone, products, equipmentno, problem, solution,solved,followup,forwarded,self._USER)
+                print(exestring)
+                with self.con:
+                    cur = self.con.cursor()        
+                    cur.execute(exestring)
+                        
+                self.con.commit()
+                self.con.close()
+                
+                self.statuslabel.setText('- Successfully stored in database.')
+                self.CLEAR_OK = True
+                # Open a messagebox to potentially delete all the textboxes
+                self.messagebox =  QtGui.QMessageBox.question(self, 'Message',
+                    "Do you want to clear the textboxes?", QtGui.QMessageBox.Yes | 
+                    QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+                
+                if self.messagebox == QtGui.QMessageBox.Yes:
+                    self.btn3Clicked()
+                    self.statuslabel.setText('- Registration completed, all textboxes cleared.')
+                else:
+                    pass
+                
+            except:
+                QtGui.QMessageBox.warning(self, 'Warning', 'Error code 002:\nThe registration failed. Please check your data and try again', buttons=QtGui.QMessageBox.Ok)
         
-            # Open a messagebox to potentially delete all the textboxes
-            self.messagebox =  QtGui.QMessageBox.question(self, 'Message',
-                "Do you want to clear the textboxes?", QtGui.QMessageBox.Yes | 
-                QtGui.QMessageBox.No, QtGui.QMessageBox.No)
-            
-            if self.messagebox == QtGui.QMessageBox.Yes:
-                self.btn3Clicked()
-                self.statuslabel.setText('- Registration completed, all textboxes cleared.')
+        else:
+            reply = QtGui.QMessageBox.question(self, 'Continue', 'Do you want to continue without stopping the time?', buttons=QtGui.QMessageBox.Yes, defaultButton=QtGui.QMessageBox.No)    
+            if reply == QtGui.QMessageBox.Yes:
+                self.REGISTER_OK = True
+                self.btn2Clicked()
             else:
                 pass
-        
-        except:
-            QtGui.QMessageBox.warning(self, 'Warning', 'Error code 002:\nThe registration failed. Please check your data and try again', buttons=QtGui.QMessageBox.Ok)
-        
-        
+                
     def btn3Clicked(self):
-        self.le_StartTime.clear()   
-        self.le_Duration.clear()
-        self.le_Name.clear()
-        self.le_Company.clear()
-        self.le_Phone.clear()
-        self.le_Products.clear()
-        self.le_EquipmentNo.clear()
-        self.te_Problem.clear()
-        self.te_Solution.clear()
-        self.cb_Solved.setCheckState(0)
-        self.cb_FollowUp.setCheckState(0)
-        self.cb_Forwarded.setCheckState(0)
-        self.statuslabel.setText('- All textboxes cleared.')
-
+        if self.CLEAR_OK:
+            self.le_StartTime.clear()   
+            self.le_Duration.clear()
+            self.le_Name.clear()
+            self.le_Company.clear()
+            self.le_Phone.clear()
+            self.le_Products.clear()
+            self.le_EquipmentNo.clear()
+            self.te_Problem.clear()
+            self.te_Solution.clear()
+            self.cb_Solved.setCheckState(0)
+            self.cb_FollowUp.setCheckState(0)
+            self.cb_Forwarded.setCheckState(0)
+            self.statuslabel.setText('- All textboxes cleared.')
+        else:
+            reply = QtGui.QMessageBox.question(self, 'Continue', 'Are you sure you want to clear all field \nbefore you have registered the data?', buttons=QtGui.QMessageBox.Yes, defaultButton=QtGui.QMessageBox.No)    
+            if reply == QtGui.QMessageBox.Yes:
+                self.CLEAR_OK = True
+                self.btn3Clicked()
+            else:
+                pass
+            
     def get_company_names(self,model):
         model.setStringList(["Amey","VolkerFitzPatrick", "Morgan Sindell", "BamNuttall", "Geometris"])
     
