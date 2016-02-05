@@ -6,11 +6,12 @@ Created on Tue Nov 10 16:42:41 2015
 """
 
 import sys
-from PyQt4 import QtGui,Qt,QtCore
+from PyQt4 import QtGui,QtCore
 import sqlite3 as lite
 from datetime import datetime as dt
 import re
 import webbrowser
+import win32com.client as win32   
 
 
 class TogglCopy(QtGui.QWidget):
@@ -53,7 +54,7 @@ class TogglCopy(QtGui.QWidget):
         self.label7 = QtGui.QLabel('Products',self)
         self.label7.move(30,155)
 
-        self.label8 = QtGui.QLabel('Equipment no',self)
+        self.label8 = QtGui.QLabel('Ser/Equip no.',self)
         self.label8.move(230,155)
         
         self.label9 = QtGui.QLabel('Short description of the problem',self)
@@ -82,7 +83,6 @@ class TogglCopy(QtGui.QWidget):
         self.le_Phone = QtGui.QLineEdit(self)
         self.le_Phone.setFixedWidth(80)
         self.le_Phone.move(230,115)
-        
         
         self.le_Products = QtGui.QLineEdit(self)
         self.le_Products.setFixedWidth(190)
@@ -114,25 +114,46 @@ class TogglCopy(QtGui.QWidget):
         self.cb_FollowUp.move(230,405)
 
         #Push buttons
-        self.btn1 = QtGui.QPushButton('Start Time', self)
-        self.btn1.setFixedSize(90,55)
+        self.btn1 = QtGui.QPushButton('', self)
         self.btn1.move(30, 35)
-        self.btn1.setStyleSheet("background-color: lightgreen")  
+        self.btn1.setIcon(QtGui.QIcon('C:\\python\\database\\clock1.png'))
+        self.btn1.setIconSize(QtCore.QSize(90,55))
+        self.btn1.setStyleSheet("border: 0")  
         self.btn1.clicked.connect(self.btn1Clicked)
         
-        self.btn2 = QtGui.QPushButton('Register', self)
-        self.btn2.setFixedWidth(60)
+        self.btn2 = QtGui.QPushButton('', self)
+        self.btn2.setIcon(QtGui.QIcon('C:\\python\\database\\register.png'))
+        self.btn2.setIconSize(QtCore.QSize(30,30))
+        self.btn2.setStyleSheet("border: 0")  
         self.btn2.move(30, 430)
         self.btn2.clicked.connect(self.btn2Clicked)
         
-        self.btn3 = QtGui.QPushButton('Clear', self)
-        self.btn3.move(100, 430)
+        self.btn3 = QtGui.QPushButton('', self)
+        self.btn3.setIcon(QtGui.QIcon('C:\\python\\database\\clear.png'))
+        self.btn3.setIconSize(QtCore.QSize(30,30))
+        self.btn3.setStyleSheet("border: 0")  
+        self.btn3.move(70, 430)
         self.btn3.clicked.connect(self.btn3Clicked)
         
         self.btn4 = QtGui.QPushButton('?', self)
         self.btn4.setFixedWidth(20)
         self.btn4.move(310, 113)
         self.btn4.clicked.connect(self.btn4Clicked)
+        
+        self.btn_email = QtGui.QPushButton('',self)
+        self.btn_email.move(255, 430)
+        self.btn_email.setIcon(QtGui.QIcon('C:\\python\\database\\email.png'))
+        self.btn_email.setIconSize(QtCore.QSize(30,30))
+        self.btn_email.setStyleSheet("border: 0")
+        self.btn_email.clicked.connect(self.create_email)
+
+        self.btn_task = QtGui.QPushButton('',self)
+        self.btn_task.move(290, 430)
+        self.btn_task.setIcon(QtGui.QIcon('C:\\python\\database\\task.png'))
+        self.btn_task.setIconSize(QtCore.QSize(30,30))
+        self.btn_task.setStyleSheet("border: 0")
+        self.btn_task.clicked.connect(self.create_task)
+
         
         #Status bar
         self.statuslabel = QtGui.QLabel('- Ready (Database = {})'.format(self._DATABASENAME),self)
@@ -170,15 +191,15 @@ class TogglCopy(QtGui.QWidget):
         if not self.btn1Flag:
             self.startTime = dt.now()
             self.le_StartTime.setText(str(self.startTime.strftime("%H:%M")))
-            self.btn1.setText("Stop Time")
-            self.btn1.setStyleSheet("background-color: red")
+            self.btn1.setIcon(QtGui.QIcon('C:\\python\\database\\clock2.png'))
+        
+            self.btn1.setStyleSheet("border: 0")  
             self.btn1Flag = True
             
         else:
             durtime = str((dt.now()-self.startTime)).split('.')[0]
             self.le_Duration.setText(durtime)
-            self.btn1.setText("Start Time")
-            self.btn1.setStyleSheet("background-color: lightgreen")  
+            self.btn1.setIcon(QtGui.QIcon('C:\\python\\database\\clock1.png'))
             self.btn1Flag = False
                 
     def btn2Clicked(self):
@@ -323,7 +344,68 @@ class TogglCopy(QtGui.QWidget):
             if re.match(pattern,no2) != None:
                 return True
         return False
+    
+    def create_email(self):
+        self.cb_Forwarded.setCheckState(2)
+        try:
+            startTime = self.startTime       
+            duration = self.le_Duration.text().replace("'","")
+            name = self.le_Name.text().replace("'","")
+            company = self.le_Company.text().replace("'","")
+            phone = self.le_Phone.text()
+            products = self.le_Products.text().replace("'","")
+            equipmentno = self.le_EquipmentNo.text().replace("'","")
+            problem = self.te_Problem.toPlainText().replace("'","")
+            solution = self.te_Solution.toPlainText().replace("'","")
+            
+            
+            outlook = win32.Dispatch('outlook.application')
+            mail = outlook.CreateItem(0)
+            mail.Subject = '{} ({}) - Phone: {}'.format(name, company,phone)
+            mail.Body = """Instrument: {}
+Serial/Equipmentnr: {}
+       
+{}
 
+{}
+
+Kind regards,
+{}   
+""".format(products,equipmentno,problem,solution,self._USER)
+            mail.Display(True)
+            self.cb_Forwarded.checkState(1)
+        except:
+            QtGui.QMessageBox.warning(self, 'Warning', 'Email could not be sent', buttons=QtGui.QMessageBox.Ok)
+
+    def create_task(self):
+        self.cb_FollowUp.setCheckState(2)
+        try:
+            startTime = self.startTime       
+            duration = self.le_Duration.text().replace("'","")
+            name = self.le_Name.text().replace("'","")
+            company = self.le_Company.text().replace("'","")
+            phone = self.le_Phone.text()
+            products = self.le_Products.text().replace("'","")
+            equipmentno = self.le_EquipmentNo.text().replace("'","")
+            problem = self.te_Problem.toPlainText().replace("'","")
+            solution = self.te_Solution.toPlainText().replace("'","")
+            
+            
+            outlook = win32.Dispatch('outlook.application')
+            task = outlook.CreateItem(3)
+            task.Subject = '{} ({}) - Phone: {}'.format(name, company,phone)
+            task.Body = """Starttime: {}
+            
+Instrument: {}
+Serial/Equipmentnr: {}
+       
+{}
+
+{}""".format(startTime,products,equipmentno,problem,solution)
+            task.Display(True)
+            
+        except:
+            QtGui.QMessageBox.warning(self, 'Warning', 'Task could not be created', buttons=QtGui.QMessageBox.Ok)
 
 def main():
     
