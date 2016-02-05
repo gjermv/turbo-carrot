@@ -22,7 +22,8 @@ class TogglCopy(QtGui.QWidget):
         self.startTime = 0
     
     def initUI(self):
-        self._DATABASENAME = 'C:\\python\\database\\test.db'
+        self._DATABASENAME = 'N:\\Gjermund\\database_support\\databaseTest.db'
+        self._USER = "GV"
         
         #Fonts
         font = QtGui.QFont( "Consolas", 12)
@@ -30,6 +31,9 @@ class TogglCopy(QtGui.QWidget):
         self.label1 = QtGui.QLabel('Register case',self)
         self.label1.setFont(font)
         self.label1.move(15,10)
+        
+        self.label_user = QtGui.QLabel('User: {}'.format(self._USER),self)
+        self.label_user.move(290,10)
         
         self.label2 = QtGui.QLabel('Start Time',self)
         self.label2.move(130,50)
@@ -141,12 +145,19 @@ class TogglCopy(QtGui.QWidget):
         self.setWindowTitle('Time registration')
         self.show()
         
-        # Create an auto fill 
+        # Create an auto fill for companies
         self.completer = QtGui.QCompleter()
         self.le_Company.setCompleter(self.completer)
         model = QtGui.QStringListModel()
         self.completer.setModel(model)
-        self.get_data(model)
+        self.get_company_names(model)
+        
+        # Create an auto fill for phonenumbers
+        self.completer2 = QtGui.QCompleter()
+        self.le_Phone.setCompleter(self.completer2)
+        model2 = QtGui.QStringListModel()
+        self.completer2.setModel(model2)
+        self.get_all_phonenumbers(model2)
         
         QtCore.QObject.connect(self.le_Phone, QtCore.SIGNAL('editingFinished()'), self.getPhoneNumberLength)
         
@@ -171,54 +182,59 @@ class TogglCopy(QtGui.QWidget):
             self.btn1Flag = False
                 
     def btn2Clicked(self):
-        self.con = lite.connect(self._DATABASENAME)
+        try:
+            self.con = lite.connect(self._DATABASENAME)
+            
+            startTime = self.startTime       
+            duration = self.le_Duration.text().replace("'","")
+            name = self.le_Name.text().replace("'","")
+            company = self.le_Company.text().replace("'","")
+            phone = self.le_Phone.text()
+            products = self.le_Products.text().replace("'","")
+            equipmentno = self.le_EquipmentNo.text().replace("'","")
+            problem = self.te_Problem.toPlainText().replace("'","")
+            solution = self.te_Solution.toPlainText().replace("'","")
+            regtime = str(dt.now())
+            
+            if self.cb_Solved.checkState() == 2:
+                solved = 1
+            else: 
+                solved = 0
+            if self.cb_FollowUp.checkState() == 2:
+                followup = 1
+            else:
+                followup = 0
+            if self.cb_Forwarded.checkState() == 2:
+                forwarded = 1
+            else:
+                forwarded = 0
+            
+            exestring = "INSERT INTO Support VALUES(NULL,"
+            exestring += "'{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}')".format(startTime, duration, regtime, name, company, phone, products, equipmentno, problem, solution,solved,followup,forwarded,self._USER)
+            print(exestring)
+            with self.con:
+                cur = self.con.cursor()        
+                cur.execute(exestring)
+                    
+            self.con.commit()
+            self.con.close()
+            
+            self.statuslabel.setText('- Successfully stored in database.')
         
-        startTime = self.startTime       
-        duration = self.le_Duration.text().replace("'","")
-        name = self.le_Name.text().replace("'","")
-        company = self.le_Company.text().replace("'","")
-        phone = self.le_Phone.text()
-        products = self.le_Products.text().replace("'","")
-        equipmentno = self.le_EquipmentNo.text().replace("'","")
-        problem = self.te_Problem.toPlainText().replace("'","")
-        solution = self.te_Solution.toPlainText().replace("'","")
-        regtime = str(dt.now())
+            # Open a messagebox to potentially delete all the textboxes
+            self.messagebox =  QtGui.QMessageBox.question(self, 'Message',
+                "Do you want to clear the textboxes?", QtGui.QMessageBox.Yes | 
+                QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+            
+            if self.messagebox == QtGui.QMessageBox.Yes:
+                self.btn3Clicked()
+                self.statuslabel.setText('- Registration completed, all textboxes cleared.')
+            else:
+                pass
         
-        if self.cb_Solved.checkState() == 2:
-            solved = 1
-        else: 
-            solved = 0
-        if self.cb_FollowUp.checkState() == 2:
-            followup = 1
-        else:
-            followup = 0
-        if self.cb_Forwarded.checkState() == 2:
-            forwarded = 1
-        else:
-            forwarded = 0
+        except:
+            QtGui.QMessageBox.warning(self, 'Warning', 'Error code 002:\nThe registration failed. Please check your data and try again', buttons=QtGui.QMessageBox.Ok)
         
-        exestring = "INSERT INTO Support VALUES(NULL,"
-        exestring += "'{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}')".format(startTime, duration, regtime, name, company, phone, products, equipmentno, problem, solution,solved,followup,forwarded)
-        print(exestring)
-        with self.con:
-            cur = self.con.cursor()        
-            cur.execute(exestring)
-                
-        self.con.commit()
-        self.con.close()
-        
-        self.statuslabel.setText('- Successfully stored in database.')
-        
-        # Open a messagebox to potentially delete all the textboxes
-        self.messagebox =  QtGui.QMessageBox.question(self, 'Message',
-            "Do you want to clear the textboxes?", QtGui.QMessageBox.Yes | 
-            QtGui.QMessageBox.No, QtGui.QMessageBox.No)
-        
-        if self.messagebox == QtGui.QMessageBox.Yes:
-            self.btn3Clicked()
-            self.statuslabel.setText('- Registration completed, all textboxes cleared.')
-        else:
-            pass
         
     def btn3Clicked(self):
         self.le_StartTime.clear()   
@@ -235,31 +251,52 @@ class TogglCopy(QtGui.QWidget):
         self.cb_Forwarded.setCheckState(0)
         self.statuslabel.setText('- All textboxes cleared.')
 
-    def get_data(self,model):
-        model.setStringList(["VolkerFitzPatrick", "Morgan Sindell", "BamNuttall", "Geometris"])
-
-    def btn4Clicked(self):
-        con = lite.connect(self._DATABASENAME)
-        cur = con.cursor()    
-        cur.execute("SELECT * FROM Support")
-        rows = cur.fetchall()
-        s = '<html><body> <table width = "80%" align="center" border="1px" bordercolor="WhiteSmoke" ><tr><td colspan="5" bgcolor="LightGrey"><b>Overview</b></td>'
+    def get_company_names(self,model):
+        model.setStringList(["Amey","VolkerFitzPatrick", "Morgan Sindell", "BamNuttall", "Geometris"])
+    
+    def get_all_phonenumbers(self,model2):
+        try:
+            con = lite.connect(self._DATABASENAME)
+            cur = con.cursor()    
+            cur.execute("SELECT Phone FROM Support")
+            rows = cur.fetchall()        
+            con.close()
+            phoneset = set()
+            
+            for item in rows:
+                if len(item[0]) == 11 and '.' not in item[0]:
+                    phoneset.add(item[0])
+                    
+            print('Phonelist',len(phoneset))
+            model2.setStringList(list(phoneset))
+        except:
+            QtGui.QMessageBox.warning(self, 'Warning', 'Error code 004:\nSomething went terribly wrong.', buttons=QtGui.QMessageBox.Ok)
         
-        for item in rows:
-           
-            if self.checkPhoneNumber(self.le_Phone.text(), item[6]):
-                s += '<tr><td bgcolor="WhiteSmoke" colspan="5">Date: '+item[1][:16]+'</td></tr><tr>'
-                s += '<td>'+item[4]+'</td><td>'+item[6]+'</td><td>'+item[7]+'</td><td>'+item[9]+'</td><td>'+item[10]+'</td>'
-                s += '</tr><tr><td colspan="5"><hr></td></tr>'
-                
-        s += '</table></body></html>'
-        con.close()
-        htmlfile = open('C:\\python\\database\\output.html','w',encoding='utf-8')
-        htmlfile.write(s)
-        htmlfile.close()
-        self.statuslabel.setText('- Successfully created a webpage.')
-        webbrowser.open('C:\\python\\database\\output.html')
-
+    def btn4Clicked(self):
+        try:
+            con = lite.connect(self._DATABASENAME)
+            cur = con.cursor()    
+            cur.execute("SELECT * FROM Support")
+            rows = cur.fetchall()
+            s = '<html><body> <table width = "80%" align="center" border="1px" bordercolor="WhiteSmoke" ><tr><td colspan="5" bgcolor="LightGrey"><b>Overview</b></td>'
+            
+            for item in rows:
+               
+                if self.checkPhoneNumber(self.le_Phone.text(), item[6]):
+                    s += '<tr><td bgcolor="WhiteSmoke" colspan="5">Date: '+item[1][:16]+'</td></tr><tr>'
+                    s += '<td>'+item[4]+'</td><td>'+item[6]+'</td><td>'+item[7]+'</td><td>'+item[9]+'</td><td>'+item[10]+'</td>'
+                    s += '</tr><tr><td colspan="5"><hr></td></tr>'
+                    
+            s += '</table></body></html>'
+            con.close()
+            htmlfile = open('C:\\python\\database\\output.html','w',encoding='utf-8')
+            htmlfile.write(s)
+            htmlfile.close()
+            self.statuslabel.setText('- Successfully created a webpage.')
+            webbrowser.open('C:\\python\\database\\output.html')
+        except:
+            QtGui.QMessageBox.warning(self, 'Warning', 'Error code 001\nSomething went seriously wrong', buttons=QtGui.QMessageBox.Ok)
+            
     def checkPhoneNumber(self,newn, oldn):
         no1 = str(newn)
         no2 = str(oldn)
