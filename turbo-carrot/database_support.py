@@ -23,7 +23,7 @@ class TogglCopy(QtGui.QWidget):
         self.startTime = 0
     
     def initUI(self):
-        self._DATABASENAME = 'N:\\Gjermund\\database_support\\databaseTest.db'
+        self._DATABASENAME = 'N:\\Gjermund\\database_support\\support.db'
         self._USER = "GV"
         
         #Fonts
@@ -116,20 +116,20 @@ class TogglCopy(QtGui.QWidget):
         #Push buttons
         self.btn1 = QtGui.QPushButton('', self)
         self.btn1.move(30, 35)
-        self.btn1.setIcon(QtGui.QIcon('C:\\python\\database\\clock1.png'))
+        self.btn1.setIcon(QtGui.QIcon('N:\Gjermund\database_support\\img\\clock1.png'))
         self.btn1.setIconSize(QtCore.QSize(90,55))
         self.btn1.setStyleSheet("border: 0")  
         self.btn1.clicked.connect(self.btn1Clicked)
         
         self.btn2 = QtGui.QPushButton('', self)
-        self.btn2.setIcon(QtGui.QIcon('C:\\python\\database\\register.png'))
+        self.btn2.setIcon(QtGui.QIcon('N:\Gjermund\database_support\\img\\register.png'))
         self.btn2.setIconSize(QtCore.QSize(30,30))
         self.btn2.setStyleSheet("border: 0")  
         self.btn2.move(30, 430)
         self.btn2.clicked.connect(self.btn2Clicked)
         
         self.btn3 = QtGui.QPushButton('', self)
-        self.btn3.setIcon(QtGui.QIcon('C:\\python\\database\\clear.png'))
+        self.btn3.setIcon(QtGui.QIcon('N:\Gjermund\database_support\\img\\clear.png'))
         self.btn3.setIconSize(QtCore.QSize(30,30))
         self.btn3.setStyleSheet("border: 0")  
         self.btn3.move(70, 430)
@@ -142,14 +142,14 @@ class TogglCopy(QtGui.QWidget):
         
         self.btn_email = QtGui.QPushButton('',self)
         self.btn_email.move(255, 430)
-        self.btn_email.setIcon(QtGui.QIcon('C:\\python\\database\\email.png'))
+        self.btn_email.setIcon(QtGui.QIcon('N:\Gjermund\database_support\\img\\email.png'))
         self.btn_email.setIconSize(QtCore.QSize(30,30))
         self.btn_email.setStyleSheet("border: 0")
         self.btn_email.clicked.connect(self.create_email)
 
         self.btn_task = QtGui.QPushButton('',self)
         self.btn_task.move(290, 430)
-        self.btn_task.setIcon(QtGui.QIcon('C:\\python\\database\\task.png'))
+        self.btn_task.setIcon(QtGui.QIcon('N:\Gjermund\database_support\\img\\task.png'))
         self.btn_task.setIconSize(QtCore.QSize(30,30))
         self.btn_task.setStyleSheet("border: 0")
         self.btn_task.clicked.connect(self.create_task)
@@ -191,7 +191,7 @@ class TogglCopy(QtGui.QWidget):
         if not self.btn1Flag:
             self.startTime = dt.now()
             self.le_StartTime.setText(str(self.startTime.strftime("%H:%M")))
-            self.btn1.setIcon(QtGui.QIcon('C:\\python\\database\\clock2.png'))
+            self.btn1.setIcon(QtGui.QIcon('N:\Gjermund\database_support\\img\\clock2.png'))
         
             self.btn1.setStyleSheet("border: 0")  
             self.btn1Flag = True
@@ -199,7 +199,7 @@ class TogglCopy(QtGui.QWidget):
         else:
             durtime = str((dt.now()-self.startTime)).split('.')[0]
             self.le_Duration.setText(durtime)
-            self.btn1.setIcon(QtGui.QIcon('C:\\python\\database\\clock1.png'))
+            self.btn1.setIcon(QtGui.QIcon('N:\Gjermund\database_support\\img\\clock1.png'))
             self.btn1Flag = False
                 
     def btn2Clicked(self):
@@ -310,11 +310,11 @@ class TogglCopy(QtGui.QWidget):
                     
             s += '</table></body></html>'
             con.close()
-            htmlfile = open('C:\\python\\database\\output.html','w',encoding='utf-8')
+            htmlfile = open('N:\Gjermund\database_support\\output.html','w',encoding='utf-8')
             htmlfile.write(s)
             htmlfile.close()
             self.statuslabel.setText('- Successfully created a webpage.')
-            webbrowser.open('C:\\python\\database\\output.html')
+            webbrowser.open('N:\Gjermund\database_support\\output.html')
         except:
             QtGui.QMessageBox.warning(self, 'Warning', 'Error code 001\nSomething went seriously wrong', buttons=QtGui.QMessageBox.Ok)
             
@@ -416,4 +416,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
