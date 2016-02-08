@@ -28,6 +28,8 @@ class TogglCopy(QtGui.QWidget):
         self.CLEAR_OK = True
         self.REGISTER_OK = False
         
+        
+        
         #Fonts
         font = QtGui.QFont( "Consolas", 12)
         # Labels
@@ -286,7 +288,7 @@ class TogglCopy(QtGui.QWidget):
             self.cb_Forwarded.setCheckState(0)
             self.statuslabel.setText('- All textboxes cleared.')
         else:
-            reply = QtGui.QMessageBox.question(self, 'Continue', 'Are you sure you want to clear all field \nbefore you have registered the data?', buttons=QtGui.QMessageBox.Yes, defaultButton=QtGui.QMessageBox.No)    
+            reply = QtGui.QMessageBox.question(self, 'Continue', 'Are you sure you want to clear all fields \nbefore you have registered the data?', buttons=QtGui.QMessageBox.Yes, defaultButton=QtGui.QMessageBox.No)    
             if reply == QtGui.QMessageBox.Yes:
                 self.CLEAR_OK = True
                 self.btn3Clicked()
@@ -431,6 +433,7 @@ Serial/Equipmentnr: {}
 def main():
     
     app = QtGui.QApplication(sys.argv)
+    app.setWindowIcon(QtGui.QIcon('N:\\Gjermund\database_support\\img\\help_icon.png'))
     ex = TogglCopy()
     sys.exit(app.exec_())
 
