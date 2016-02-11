@@ -23,11 +23,11 @@ class TogglCopy(QtGui.QWidget):
         self.startTime = 0
     
     def initUI(self):
-        self._DATABASENAME = 'N:\\Gjermund\\database_support\\support.db'
+        #self._DATABASENAME = 'N:\\Gjermund\\database_support\\support.db' # For production
+        self._DATABASENAME = 'C:\\python\\database\\support.db'  # For testing
         self._USER = "GV"
         self.CLEAR_OK = True
         self.REGISTER_OK = False
-        
         
         
         #Fonts
@@ -217,7 +217,7 @@ class TogglCopy(QtGui.QWidget):
                 startTime = self.startTime       
                 duration = self.le_Duration.text().replace("'","")
                 name = self.le_Name.text().replace("'","")
-                company = self.le_Company.text().replace("'","")
+                company = self.le_Company.text().replace("'","").rstrip(' ')
                 phone = self.le_Phone.text()
                 products = self.le_Products.text().replace("'","")
                 equipmentno = self.le_EquipmentNo.text().replace("'","")
@@ -296,7 +296,17 @@ class TogglCopy(QtGui.QWidget):
                 pass
             
     def get_company_names(self,model):
-        model.setStringList(["Amey","VolkerFitzPatrick", "Morgan Sindell", "BamNuttall", "Geometris"])
+        try:    
+            list_of_companies = self.read_list_of_companies()
+            model.setStringList(list_of_companies)
+        except:
+            QtGui.QMessageBox.warning(self, 'Warning', 'Error code 005:\nNot able to find file with companies.', buttons=QtGui.QMessageBox.Ok)
+            model.setStringList(['No companies'])
+    
+    def read_list_of_companies(self):
+        f = open('N:\\Gjermund\\database_support\\res\\companies.dat','r',encoding='utf-8')
+        comp = f.read()
+        return comp.split('\n')
     
     def get_all_phonenumbers(self,model2):
         try:
