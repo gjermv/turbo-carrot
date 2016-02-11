@@ -18,9 +18,9 @@ class TogglCopy(QtGui.QWidget):
     
     def __init__(self):
         super(TogglCopy, self).__init__()
+        self.currentVer = '0.1.0'
         self.initUI()
-        self.btn1Flag = False
-        self.startTime = 0
+        self.checkVersion()
     
     def initUI(self):
         #self._DATABASENAME = 'N:\\Gjermund\\database_support\\support.db' # For production
@@ -28,7 +28,8 @@ class TogglCopy(QtGui.QWidget):
         self._USER = "GV"
         self.CLEAR_OK = True
         self.REGISTER_OK = False
-        
+        self.btn1Flag = False
+        self.startTime = 0
         
         #Fonts
         font = QtGui.QFont( "Consolas", 12)
@@ -186,6 +187,8 @@ class TogglCopy(QtGui.QWidget):
         
         QtCore.QObject.connect(self.le_Phone, QtCore.SIGNAL('editingFinished()'), self.getPhoneNumberLength)
         
+        
+        
     def getPhoneNumberLength(self):
         l = len(self.le_Phone.text())
         st = 'Phone ({})'.format(l)
@@ -306,6 +309,7 @@ class TogglCopy(QtGui.QWidget):
     def read_list_of_companies(self):
         f = open('N:\\Gjermund\\database_support\\res\\companies.dat','r',encoding='utf-8')
         comp = f.read()
+        f.close()
         return comp.split('\n')
     
     def get_all_phonenumbers(self,model2):
@@ -439,7 +443,20 @@ Serial/Equipmentnr: {}
             
         except:
             QtGui.QMessageBox.warning(self, 'Warning', 'Task could not be created', buttons=QtGui.QMessageBox.Ok)
-
+    
+    def checkVersion(self):
+        try:    
+            vfile  = open('N:\\Gjermund\\database_support\\res\\version.dat','r',encoding='utf-8')
+            version = vfile.read()
+            vfile.close()
+            if self.currentVer != version:
+                QtGui.QMessageBox.information(self, 'Version', 'A new version might be available.', buttons=QtGui.QMessageBox.Ok)
+            else:
+                print('Version check: OK')
+        except:
+            QtGui.QMessageBox.warning(self, 'Warning', 'Error code 006:\nNot able to find information about version.', buttons=QtGui.QMessageBox.Ok)
+            
+    
 def main():
     
     app = QtGui.QApplication(sys.argv)
