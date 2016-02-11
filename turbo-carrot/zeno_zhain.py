@@ -6,15 +6,15 @@ Created on Tue Nov 10 16:42:41 2015
 """
 
 import sys
-from PyQt4 import QtGui,Qt,QtCore
-from datetime import datetime as dt
-import re
+from PyQt4 import QtGui
 import xlsxwriter
 from xlsxwriter.utility import xl_rowcol_to_cell
 import zipfile
 import glob
 import math
 import subprocess
+import os.path
+import svgwrite
 
 
 class ZenoZhain(QtGui.QWidget):
@@ -23,8 +23,6 @@ class ZenoZhain(QtGui.QWidget):
         super(ZenoZhain, self).__init__()
         self.initUI()
         
-
-    
     def initUI(self):
         self.fileDir = None
         self.fileName = None
@@ -46,7 +44,6 @@ class ZenoZhain(QtGui.QWidget):
         myQMenuBar.addAction(aboutAction)
         
 
-        
         # Labels
         self.la_indata = QtGui.QLabel('Choose Zeno file',self)
         self.la_indata.move(15,25)
@@ -93,7 +90,6 @@ class ZenoZhain(QtGui.QWidget):
         self.btn_outdir.clicked.connect(self.set_outdir)
         self.btn_report.clicked.connect(self.create_report)
         
-        
     def findfile(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file','C:\\python\\zenodata')
         
@@ -130,8 +126,7 @@ class ZenoZhain(QtGui.QWidget):
         if self.fileDir != None:
             print("Create Report")
             self.createSpreadsheet()
-            
-            
+                    
     def createSpreadsheet(self):
         name = self.le_outname.text()
         newdir = self.fileDir +'\\'+ name
@@ -141,17 +136,22 @@ class ZenoZhain(QtGui.QWidget):
         worksheet = workbook.add_worksheet()
         
         endline = self.addDataToSpreadSheet(worksheet,workbook)
-        self.initWorkbook(worksheet,endline,workbook)
+        
+        subdir = glob.glob(newdir+'\\*\\')[0]
+        projectname = os.path.dirname(subdir).split('\\')[-1]
+        
+        self.initWorkbook(worksheet,endline,workbook,projectname)
         worksheet.print_area(0, 0, endline, 18)
         workbook.close()
         
         answer = QtGui.QMessageBox.question(self, 'Message', 'Excel report successfully created.\n {}\n\n Do you want to open the folder to view the file?'.format(filename), buttons=QtGui.QMessageBox.Yes, defaultButton=QtGui.QMessageBox.No)
         
+        self.createDrawing()
+        
         if answer == QtGui.QMessageBox.Yes:
             subprocess.Popen('explorer "{}"'.format(newdir))
 
-
-    def initWorkbook(self,ws,endline,workbook):
+    def initWorkbook(self,ws,endline,workbook,projectname):
         formatHeader = workbook.add_format({'bold': True, 'font_size': 15,'align':'center'})
         formatStandard = workbook.add_format({'align':'left','border':1,})
         formatStandardPlus = workbook.add_format({'align':'left','border':1,'bold': True})
@@ -164,7 +164,7 @@ class ZenoZhain(QtGui.QWidget):
         ws.merge_range('G2:H2','PT Number:',formatStandard)
         ws.merge_range('M2:N2','Recipient Repr:',formatStandard)
         ws.merge_range('C2:F2',"",formatStandard)
-        ws.merge_range('I2:L2',"",formatStandard)
+        ws.merge_range('I2:L2',projectname,formatStandard)
         ws.merge_range('O2:R2',"",formatStandard)
         
         #Line 3
@@ -255,11 +255,6 @@ class ZenoZhain(QtGui.QWidget):
         return ws
     
     def addDataToSpreadSheet(self,worksheet,workbook):
-        formatStandard = workbook.add_format({'align':'left','border':1})
-        
-        ws = worksheet
-        k = 0
-        
         name = self.le_outname.text()
         exportDir = self.fileDir +'\\'+ name 
         
@@ -267,10 +262,14 @@ class ZenoZhain(QtGui.QWidget):
         ZipFile.extractall(exportDir)
         ZipFile.close()
         
+        formatStandard = workbook.add_format({'align':'left','border':1})
+        
+        ws = worksheet
+        k = 0
+
         subdir = glob.glob(exportDir+'\\*\\')[0]
         
         myFile = glob.glob(exportDir+'\\*\\*.txt')
-        print(exportDir,myFile)          
         
         for file in myFile:
             print(file)
@@ -302,6 +301,7 @@ class ZenoZhain(QtGui.QWidget):
                     ws.write_url(k,18,subdir+'Images\\'+data[5])
                 
                 lat_tmp,lon_tmp = lat,lon
+        
         return k+2
     
     def haversine(self,lon1, lat1, lon2, lat2):
@@ -329,6 +329,45 @@ File name -> The name of the folder and exported Excel file.""")
     def showAbout(self):
         QtGui.QMessageBox.information(self, "About",
                     "Version: \napp 0.0.02")
+
+    def createDrawing(self):
+        name = self.le_outname.text()
+        filename = self.fileDir +'\\'+ name +'\\Drawing_'+ name+ '.svg'
+        
+        exportDir = self.fileDir +'\\'+ name 
+        mflines = open(glob.glob(exportDir+'\\*\\*.txt')[0],'r',encoding = 'utf-16').readlines()
+        mflist = []
+        tmp_lat = 0
+        tmp_lom = 0
+        dist = 0 
+        
+        for i,l in enumerate(mflines[1:]):
+            line = l.split(';')
+            nline = [float(line[3]),float(line[2]),line[7],line[8]]
+            if i == 0:
+                nline.append(dist)
+                tmp_lat = float(line[3])
+                tmp_lon = float(line[2])  
+            else:
+                dist += round(self.haversine(tmp_lon,tmp_lat,float(line[2]),float(line[3])),0)*3
+                nline.append(dist)
+                tmp_lat = float(line[3])
+                tmp_lon = float(line[2])              
+            
+            mflist.append(nline)
+            
+        print(mflist)
+        
+        dwg = svgwrite.Drawing(filename, size= ('{}px'.format(dist),'100px'))
+        dwg.add(dwg.line((0, 50), (dist, 50), stroke=svgwrite.rgb(10, 10, 10, '%')))
+        dwg.add(dwg.line((0, 70), (dist, 70), stroke=svgwrite.rgb(10, 10, 10, '%')))
+        dwg.add(dwg.text('Drawing', insert=(item[4], 10), fill='black',style = "font-size:10px; font-family:Arial"))
+        dwg.add(dwg.text('Chainage', insert=-15, 20), fill='black',style = "font-size:10px; font-family:Arial"))
+        for item in mflist:
+            dwg.add(dwg.line((item[4], 20), (item[4], 70), stroke=svgwrite.rgb(10, 10, 16, '%')))
+            dwg.add(dwg.text(item[2], insert=(item[4], 20), fill='black',style = "font-size:6px; font-family:Arial"))
+            dwg.add(dwg.text(str(item[4]), insert=(item[4], 10), fill='black',style = "font-size:6px; font-family:Arial"))
+        dwg.save()
 
 def main():
     
