@@ -324,11 +324,13 @@ class ZenoZhain(QtGui.QWidget):
         QtGui.QMessageBox.information(self, "Help",
                     """Choose Zeno file -> The exported ascii file from the Zeno controller.\n
 Output dir -> The new directory where you want to store the data, ie. Desktop\n
-File name -> The name of the folder and exported Excel file.""")
+File name -> The name of the folder and exported Excel file.
+
+Go to github.com/gjermv to find the source code for this project.""")
 
     def showAbout(self):
         QtGui.QMessageBox.information(self, "About",
-                    "Version: \napp 0.0.02")
+                    "Version: \napp 0.0.02\nLicense: GNU")
 
     def createDrawing(self):
         name = self.le_outname.text()
@@ -362,7 +364,7 @@ File name -> The name of the folder and exported Excel file.""")
         dwg.add(dwg.line((0, 50), (dist, 50), stroke=svgwrite.rgb(10, 10, 10, '%')))
         dwg.add(dwg.line((0, 70), (dist, 70), stroke=svgwrite.rgb(10, 10, 10, '%')))
         dwg.add(dwg.text('Drawing', insert=(item[4], 10), fill='black',style = "font-size:10px; font-family:Arial"))
-        dwg.add(dwg.text('Chainage', insert=-15, 20), fill='black',style = "font-size:10px; font-family:Arial"))
+        dwg.add(dwg.text('Chainage', insert=(-15, 20), fill='black', style = "font-size:10px; font-family:Arial"))
         for item in mflist:
             dwg.add(dwg.line((item[4], 20), (item[4], 70), stroke=svgwrite.rgb(10, 10, 16, '%')))
             dwg.add(dwg.text(item[2], insert=(item[4], 20), fill='black',style = "font-size:6px; font-family:Arial"))

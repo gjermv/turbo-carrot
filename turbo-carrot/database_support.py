@@ -38,6 +38,11 @@ class TogglCopy(QtGui.QWidget):
         self.label1.setFont(font)
         self.label1.move(15,10)
         
+        if self._DATABASENAME != 'N:\\Gjermund\\database_support\\support.db': # To make it more visible that a test version is running. 
+            self.labelWaterMark = QtGui.QLabel('NB:Test ver.',self)
+            self.labelWaterMark.setFont(font)
+            self.labelWaterMark.move(150,10)
+        
         self.label_user = QtGui.QLabel('User: {}'.format(self._USER),self)
         self.label_user.move(290,10)
         
@@ -467,3 +472,29 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
+    
+    
+def mergeDatabases(path_to_db1,path_to_mainDB):
+    """ Function that can be used if data has been added to the wrong database. Delete all readings in db_1 that already are in the main db, 
+    and then run this function. Take a backup of the database before use."""
+
+    con = lite.connect(path_to_db1)
+    cur = con.cursor()    
+    cur.execute("SELECT * FROM Support")
+    rows = cur.fetchall()        
+    con.close()
+    
+    
+    con = lite.connect(path_to_mainDB)
+                    
+    for row in rows:
+        exestring = "INSERT INTO Support VALUES(NULL,"
+        exestring += "'{0}','{1}','{2}','{3}','{4}','{5}','{6}','{7}','{8}','{9}','{10}','{11}','{12}','{13}')".format(row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10],row[11],row[12],row[13],row[14])
+        print(exestring)
+        with con:
+            cur = con.cursor()        
+            cur.execute(exestring)
+            
+        con.commit()
+    con.close()
