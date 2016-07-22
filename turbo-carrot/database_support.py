@@ -163,7 +163,10 @@ class TogglCopy(QtGui.QWidget):
         self.btn_task.setIconSize(QtCore.QSize(30,30))
         self.btn_task.setStyleSheet("border: 0")
         self.btn_task.clicked.connect(self.create_task)
-
+        
+        self.btn_test = QtGui.QPushButton('Test',self)
+        self.btn_test.move(175, 430)
+        self.btn_test.clicked.connect(self.test_button)
         
         #Status bar
         self.statuslabel = QtGui.QLabel('- Ready (Database = {})'.format(self._DATABASENAME),self)
@@ -461,7 +464,65 @@ Serial/Equipmentnr: {}
         except:
             QtGui.QMessageBox.warning(self, 'Warning', 'Error code 006:\nNot able to find information about version.', buttons=QtGui.QMessageBox.Ok)
             
-    
+    def test_button(self):
+        phone = self.le_Phone.text()
+        self.app = viewPhoneWindow(self,phone)
+        
+
+class viewPhoneWindow(QtGui.QDialog):
+    def __init__(self,parent=None,phone=None):
+        super(viewPhoneWindow, self).__init__(parent)
+        self.initUI(phone)
+        
+        
+    def initUI(self,phone):
+        entries = self.readDataBase(phone)
+        print(len(entries))
+        
+        y = 15
+        self.label = list()
+        self.btn1 = list()
+        self.btn2 = list()
+        
+        for i,entry in enumerate(entries):
+            
+            iframe = QtGui.QFrame(self)
+            iframe.setFixedSize(200,50)
+            iframe.setFrameShape(QtGui.QFrame.StyledPanel)
+            iframe.move(10,y)
+            self.btn1.append(QtGui.QPushButton('X',iframe))
+            
+            
+            #===================================================================
+            # self.btn1.append(QtGui.QPushButton('X',self))
+            # self.btn1[i].move(15,y)
+            # 
+            # self.label.append(QtGui.QLabel(entry[4],self))
+            # self.label[i].move(80,y)
+            # 
+            # self.btn2.append(QtGui.QPushButton('Y',self))
+            # self.btn2[i].move(150,y)
+            #===================================================================
+            
+            
+            y += 55
+        
+        #Main window
+        self.setGeometry(500,300,345,493)
+        self.setWindowTitle('Previous records for {}'.format(phone))
+        self.show()
+        
+    def readDataBase(self,phone):
+        try:
+            self._DATABASENAME = 'C:\\python\\database\\support.db'
+            con = lite.connect(self._DATABASENAME)
+            cur = con.cursor()    
+            cur.execute("SELECT * FROM Support WHERE Phone LIKE '{}'".format(phone))
+            rows = cur.fetchall()
+            return rows
+        except:
+            return 0
+
 def main():
     
     app = QtGui.QApplication(sys.argv)
@@ -472,9 +533,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
-    
-    
+## Useful extra functions for various tasks that.     
 def mergeDatabases(path_to_db1,path_to_mainDB):
     """ Function that can be used if data has been added to the wrong database. Delete all readings in db_1 that already are in the main db, 
     and then run this function. Take a backup of the database before use."""
